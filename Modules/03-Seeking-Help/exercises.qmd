@@ -16,7 +16,7 @@ Use `help()` or `?` to get help in R.
 
 #### Challenge 1
 
-Look at the help page for `c`. What kind of vector do you expect will be creeated if you evaluate the following?
+Look at the help page for `c`. What kind of vector do you expect will be created if you evaluate the following?
 
 ```{r}
 c(1, 2, 3)
@@ -26,7 +26,7 @@ c(1, 2, 'f')
 
 <!-- Challenge 1 answer begin -->
 
-Your answer goes here
+The first command returns a numeric vector. The second is a character vector. The third is also a character vector because it includes a character value.
 
 <!-- Challenge 1 answer end -->
 
@@ -36,7 +36,7 @@ Look at the help for the `paste` function. You will need to use it later. What's
 
 <!-- Challenge 2 answer begin -->
 
-Your answer goes here
+sep controls how the terms are pasted together. collapse controls how the results are pasted together.
 
 <!-- Challenge 2 answer end -->
 
@@ -52,6 +52,6 @@ Use `??"read table"` to look up functions related to reading in tabular data.
 
 <!-- Challenge 3 answer begin -->
 
-Your answer goes here
+read.delim(file)
 
 <!-- Challenge 3 answer end -->

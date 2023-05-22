@@ -35,7 +35,7 @@ Which of the following are valid R variable names?
 -   Valid
     -   min_height
 
-    -    max.height
+    -   max.height
 
     -   .mass
 
