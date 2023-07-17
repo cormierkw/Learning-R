@@ -37,16 +37,18 @@ cats$weight <- as.numeric(cats$weight)
 cats$age <- c(2,3,5,1)
 
 # create human_age
-## your code goes here
+human_age <- cats$age * 7
 
 # convert human_age to a factor
-## your code goes here
+human_age <- as.factor(human_age)
 
 # convert human_age back to a numeric vector
-## your code goes here
+human_age <- as.numeric(human_age)
 ```
 
-Explanation: ...
+Explanation:
+
+Converting `human_age` to a factor stores values as categories with integer indices from 1 to 4. When converted back to a numeric vector, it pulled the category identifier instead of the values. Would first need to convert the factor into a character vector and then to a numeric.
 
 <!-- Challenge 1 answer end -->
 
@@ -72,13 +74,17 @@ Then use `rbind` to add an entry for someone you work with. Finally, use `cbind`
 
 ```{r}
 # create people
-people <- ## your code goes here ##
+people <- data.frame(first_name = "Kevin", 
+                     last_name = "Cormier", 
+                     lucky_number = 7)
   
 # add a team member
-## your code goes here ##
+people <- rbind(people, data.frame(first_name = "Randy", 
+                                   last_name = "Johnson", 
+                                   lucky_number = 7))
   
 # add coffee break
-## your code goes here ##
+people <- cbind(people, coffee_break = c(TRUE, FALSE))
   
 people
 ```
@@ -97,7 +103,14 @@ Searching for ones specifically in the middle isn't too hard, but we could ask f
 library(gapminder)
 data(gapminder)
 
-# your commands go here
+#look at end of data
+tail(gapminder)
+
+#look at some random(ish) rows in the middle of the table
+set.seed(234789)
+gapminder[sample(1:nrow(gapminder), 6),]
+
+
 ```
 
 <!-- Challenge 3 answer end -->
@@ -112,6 +125,7 @@ Run the script using the `source` function, using the file path as its argument.
 
 ```{r}
 # load gapminder by sourcing your script here
+source('scripts/load_gapminder.R')
 ```
 
 <!-- Challenge 4 answer end -->
@@ -126,6 +140,18 @@ str(gapminder)
 
 <!-- Challenge 5 answer begin -->
 
-Explain the output of `str(gapminder)` here.
+We are working with a data.frame (tibble) with 1,704 rows and 6 columns:
+
+country is a factor with 142 levels.
+
+continent is a factor with 5 levels.
+
+year is an integer.
+
+lifeExp is a numeric vector of length 1704.
+
+pop is an integer vector of length 1704.
+
+gdpPercap is a numeric vector of length 1704.
 
 <!-- Challenge 5 answer end -->
