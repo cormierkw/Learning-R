@@ -32,6 +32,7 @@ Let's imagine that 1 cat year is equivalent to 7 human years.
 ```{r}
 # load cats data (make sure you are in the correct working directory)
 cats <- read.csv('../04-Data-Structures/data/feline-data_v2.csv')
+cats$weight[4] <- 2.35
 ts$weight[4] <- 2.35
 cats$weight <- as.numeric(cats$weight)
 cats$age <- c(2,3,5,1)
