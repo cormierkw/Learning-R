@@ -24,6 +24,10 @@ library(dplyr)
 library(purrr)
 
 library(LearnR) # devtools::install_github('johnsonra/LearnR')
+# check that we are running the most recent version of LearnR
+if(sessionInfo()$otherPkgs$LearnR$Version != "1.0-2")
+    warning('Check your version of LearnR. A newer version may be available')
+
 library(SnowballC)
 library(quarto)
 
@@ -33,75 +37,76 @@ library(knitr)
 # sample solutions base (solutions branch)
 # (use specific commit to keep things consistent with forks)
 # add file path to this to get raw file content
-solution_sha <- 'a91170c8cea06f5adafabebf9af1e13afe154806'
+solution_sha <- '72821f39ccf1a98aa0b0be839f697446eac0b993'
 solution_base <- paste0('https://raw.githubusercontent.com/johnsonra/Learning-R/', solution_sha, '/')
 
 # starter code base (main branch)
-starter_sha <- '049afd4ac5ab145c933192e533419ce765e75d5b'
+starter_sha <- '0774eeb802af31ec0b0925ea0361e5694daf98e6'
 starter_base <- paste0('https://raw.githubusercontent.com/johnsonra/Learning-R/', starter_sha, '/')
 
 
 # check submission against solution
-checks <- tibble(modules = system('ls Modules', intern = TRUE),
+checks <- tibble(modules = list.files('Modules')) %>%
+    filter(!grepl("Writing Good Software", modules)) %>%
+    mutate(# paths to files on GitHub
+           starter_path = paste0(starter_base, 'Modules/', modules, '/exercises.qmd'),
+           solution_path = paste0(solution_base, 'Modules/', modules, '/exercises.qmd'),
+           submission_path = paste0('Modules/', modules, '/exercises.qmd'),
+           
+           # check to see if they have started on the exercise
+           started = map2_lgl(starter_path, submission_path, ~ {
+               starter_file <- readLines(.x)
+               submission_file <- readLines(.y)
+               
+               if(length(starter_file) != length(submission_file)) # if we have added lines, work has begun
+                   return(TRUE)
+               if(any(starter_file != submission_file)) # if the number of lines in the same, but some lines have changed...
+                   return(TRUE)
+               
+               return(FALSE) # files are identical - work has not started
+               }),
+           
+           # only parse these if they have submitted an update to this file
+           submissions = map(submission_path, ~ parse_qmd(.x)),
+           
+           # sample solutions from the solutions branch
+           solutions = map(solution_path, ~ parse_qmd(.x)),
+           
+           # double check that the solution renders - if not, we'll count it as incomplete
+           
+           submission_renders = map2_lgl(modules, started, ~ {
+               if(.y)
+               {
+                   val <- try(quarto_render(paste0('Modules/', .x, '/exercises.qmd')), silent = TRUE)
+                   return(class(val) != 'try-error')
+               }
+               
+               return(FALSE)}),
+           
+           # compare submission to solution
+           code_sim = map2(submissions, solutions, ~ {
+               val <- try(compare_source_code(.x$f_code, .y$f_code), silent = TRUE)
+               if(class(val) == 'try-error')
+                   return(0)
+               return(val)}),
+               
+           text_sim = map2(submissions, solutions, ~ {
+               val <- try(compare_text(.x$f_text, .y$f_text), silent = TRUE)
+               if(class(val) == 'try-error')
+                   return(0)
+               return(val)}) %>%
+               
+               map(~ pgamma(.x, 1, 1, lower.tail = FALSE)), # convert distances to scores (figure out this distribution later - will probably be problem dependent)
+           
+           # Total score
+           score = ifelse(started,
+                          map2_dbl(code_sim, text_sim, ~ mean(.x * .y) %>% as.double),
+                          0),
+           
+           # fields for the table below
+           Lesson = as.character(NA),
+           Score = as.character(NA))
 
-                 # paths to files on GitHub
-                 starter_path = paste0(starter_base, 'Modules/', modules, '/exercises.qmd'),
-                 solution_path = paste0(solution_base, 'Modules/', modules, '/exercises.qmd'),
-                 submission_path = paste0('Modules/', modules, '/exercises.qmd'),
-                 
-                 # check to see if they have started on the exercise
-                 started = map2_lgl(starter_path, submission_path, ~ {
-                   starter_file <- readLines(.x)
-                   submission_file <- readLines(.y)
-                   
-                   if(length(starter_file) != length(submission_file)) # if we have added lines, work has begun
-                     return(TRUE)
-                   if(any(starter_file != submission_file)) # if the number of lines in the same, but some lines have changed...
-                     return(TRUE)
-                   
-                   return(FALSE) # files are identical - work has not started
-                 }),
-                   
-                 # only parse these if they have submitted an update to this file
-                 submissions = map(submission_path, ~ parse_qmd(.x)),
-                 
-                 # sample solutions from the solutions branch
-                 solutions = map(solution_path, ~ parse_qmd(.x)),
-
-                 # double check that the solution renders - if not, we'll count it as incomplete
-                 submission_renders = map2_lgl(modules, started, ~ {
-                   if(.y)
-                   {
-                     val <- try(quarto_render(paste0('Modules/', .x, '/exercises.qmd')), silent = TRUE)
-                     return(class(val) != 'try-error')
-                   }
-                   
-                   return(FALSE)}),
-                 
-                 # compare submission to solution
-                 code_sim = map2(submissions, solutions, ~ {
-                   val <- try(compare_source_code(.x$f_code, .y$f_code), silent = TRUE)
-                   if(class(val) == 'try-error')
-                     return(0)
-                   return(val)}),
-                 
-                 text_sim = map2(submissions, solutions, ~ {
-                   val <- try(compare_text(.x$f_text, .y$f_text), silent = TRUE)
-                   if(class(val) == 'try-error')
-                     return(0)
-                   return(val)}) %>%
-                   
-                   map(~ pgamma(.x, 1, 1, lower.tail = FALSE)), # convert distances to scores (figure out this distribution later - will probably be problem dependent)
-                 
-                 # Total score
-                 score = ifelse(started,
-                                map2_dbl(code_sim, text_sim, ~ mean(.x * .y) %>% as.double),
-                                0),
-                 
-                 # fields for the table below
-                 Lesson = as.character(NA),
-                 Score = as.character(NA)
-                 )
 
 #' @param score_i Numeric score in [0,1]
 #' @param score_png Location of graphic to save
@@ -184,13 +189,13 @@ for(l in 1:nrow(checks)) # for each lesson
                                                  ' <img src="score', i, '.png">')
       }
     }
+
+    # create table
+    checks$Lesson[l] <- paste0('<a href="', module_path, 'exercises.html">', gsub('-', ' ', checks$modules[l]), "</a>")
+    checks$Score[l] <- paste0('<a href="', module_path, '"><img src="', module_path, 'score0.png"></a>')
+    # write changes
+    cat(out_md, file = f_md, sep = '\n')
   }  
-  # create table
-  checks$Lesson[l] <- paste0('<a href="', module_path, 'exercises.html">', gsub('-', ' ', checks$modules[l]), "</a>")
-  checks$Score[l] <- paste0('<a href="', module_path, '"><img src="', module_path, 'score0.png"></a>')
-  
-  # write changes
-  cat(out_md, file = f_md, sep = '\n')
 }
 ```
 
