@@ -28,15 +28,18 @@ print(x)
 
 Come up with at least 2 different commands that will produce the following output using `x`:
 
-```         
-  b   c   d 
-6.2 7.1 4.8 
-```
+      b   c   d 
+    6.2 7.1 4.8 
 
 <!-- Challenge 1 answer begin -->
 
 ```{r}
-# your commands go here
+x[c(2,3,4)]
+x[2:4]
+x[c(-1,-5)]
+x[c('b','c','d')]
+x[!names(x) %in% c('a', 'e')]
+x[names(x) %in% c('b','c','d')]
 ```
 
 <!-- Challenge 1 answer end -->
@@ -56,7 +59,7 @@ Write a subsetting command to return the values in x that are greater than 4 and
 <!-- Challenge 2 answer begin -->
 
 ```{r}
-# your command goes here
+x[x > 4 & x < 7]
 ```
 
 <!-- Challenge 2 answer end -->
@@ -93,8 +96,11 @@ There's a wrong way (using only `==`), which will give you a warning; a clunky w
 
 ```{r}
 # wrong way to subset `countries`
+countries[countries == seAsia]
 # clunky way to subset `countries`
+countries[countries == 'Myanmar'| countries == 'Thailand' | countries == 'Cambodia' | countries == 'Vietnam' | countries == 'Laos']
 # elegant way to subset `countries`
+countries[countries %in% seAsia]
 ```
 
 <!-- Challenge 3 answer end -->
